@@ -1,5 +1,7 @@
-#Node Logging
-A logger that's easy to configure, transparent to use, and generates recoverable logs that can be re-processed.
+#flogger-ts
+A file logger that's easy to configure, transparent to use, and generates recoverable logs that can be re-processed.
+
+
 
 ###Why
 I've been working with databases and have been streaming and moving files a lot lately, some of which are in batches which occasionally might fail for a variety of reasons, and I need some logs to see what's gone on.
@@ -15,7 +17,7 @@ This has probably been solved before, however I wanted a solution I fully unders
 ###How
 - do the deed:
 ```shell
-npm install node-logger
+npm install flogger-ts
 ```
 - import into your typescript file: `import { ... } from "node-logger";`
 - choose your imports: sync or async. Note, if using async, events might even be printed to the terminal in an order different to being sent
