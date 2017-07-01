@@ -1,6 +1,6 @@
 {
   "name": "flogger-ts",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A logger that's easy to configure, transparent to use, and generates recoverable logs that can be re-processed.",
   "main": "dist/index.js",
   "directories": {
@@ -9,12 +9,14 @@
   "dependencies": {},
   "devDependencies": {
     "@types/node": "^8.0.7",
+    "np": "^2.16.0",
     "typescript": "^2.4.1"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
-    "prepublish": "npm run build"
+    "prepublish": "npm run build",
+    "release": "np"
   },
   "keywords": [
     "log",
