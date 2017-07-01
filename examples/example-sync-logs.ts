@@ -2,28 +2,29 @@
  * Created by mark.mccracken on 01/07/2017.
  */
 let path = require('path');
-import {currentDateString, currentTimestampString} from "../current-timestamp-string";
+import {currentDateString, currentTimestampString,
+    ReusableLog, LoggingConfig,
+    Colors,
+    redirectLoggingToFilesSync,
+    createReusableLoggerSync,
+    removeEmptyLogFilesSync} from "flogger-ts";
 let currentDate: string = currentDateString();
 let generatePathLocation = (suffix: string) => {
-    if (suffix === "log") return path.resolve(`${__dirname}/../../../volume/logs/sync-logs/${currentDate}.log`);
-    return path.resolve(`${__dirname}/../../../volume/logs/sync-logs/${currentDate}.${suffix}.log`);
+    if (suffix === "log") return path.resolve(`${__dirname}/volume/logs/sync-logs/${currentDate}.log`);
+    return path.resolve(`${__dirname}/volume/logs/sync-logs/${currentDate}.${suffix}.log`);
 };
 let logPath = generatePathLocation('log');
 let infoPath = generatePathLocation('info');
 let errorPath = generatePathLocation('error');
-import {LoggingConfig} from "../models/logging-config.model";
 let loggingConfig: LoggingConfig = {
     log:   { location: logPath,   printToTerminal: true },
     info:  { location: infoPath,  printToTerminal: true },
     error: { location: errorPath, printToTerminal: true }
 };
-import {ReusableLog} from "../models/reusable-log.model";
-import {removeEmptyLogFilesSync, redirectLoggingToFilesSync, createReusableLoggerSync} from "../synchronous-logger";
-import {Colors} from "../colors";
 // overrides the console.log, console.info, and console.error methods. Note: console.time will be considered as to info.
 redirectLoggingToFilesSync(loggingConfig);
 
-let reusableLogLocation = path.resolve(`${__dirname}/../../../volume/logs/sync-logs/reusable_logs`);
+let reusableLogLocation = path.resolve(`${__dirname}/volume/logs/sync-logs/reusable_logs`);
 // generates a function we can use to create the reusable logs.
 let reusableLogger = createReusableLoggerSync(reusableLogLocation);
 
@@ -54,7 +55,7 @@ reusableLogger(item2);
 
 let fs = require("fs");
 
-console.log("Some standard node-typescript-file-logging information");
+console.log("Some standard logging information");
 console.info("X results successfully inserted, 2 queries errored, 1 retryable. 1 errored with following details: {SQLCODE=24000 or whatever}");
 console.error("NAT Type: Strict. No Cod for you.");
 

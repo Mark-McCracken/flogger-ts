@@ -4,6 +4,6 @@
 export * from "./asynchronous-logger";
 export * from "./synchronous-logger";
 export * from "./colors";
-export * from "./current-timestamp-string";
+export * from "./current-date";
 export * from "./models/logging-config.model";
 export * from "./models/reusable-log.model";

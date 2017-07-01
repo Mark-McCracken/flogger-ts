@@ -19,7 +19,7 @@ This has probably been solved before, however I wanted a solution I fully unders
 ```shell
 npm install flogger-ts
 ```
-- import into your typescript file: `import { ... } from "node-logger";`
+- import into your typescript file: `import { ... } from "flogger-ts";`
 - choose your imports: sync or async. Note, if using async, events might even be printed to the terminal in an order different to being sent
 - set up your log file locations.
 - get to work.
@@ -35,8 +35,8 @@ import {currentDateString, currentTimestampString,
         removeEmptyLogFilesSync} from "flogger-ts";
 const currentDate: string = currentDateString();
 const generatePathLocation = (suffix: string) => {
-    if (suffix === "log") return path.resolve(`${__dirname}/../../../volume/logs/sync-logs/${currentDate}.log`);
-    return path.resolve(`${__dirname}/../../../volume/logs/sync-logs/${currentDate}.${suffix}.log`);
+    if (suffix === "log") return path.resolve(`${__dirname}/volume/logs/sync-logs/${currentDate}.log`);
+    return path.resolve(`${__dirname}/volume/logs/sync-logs/${currentDate}.${suffix}.log`);
 };
 const logPath = generatePathLocation('log');
 const infoPath = generatePathLocation('info');
@@ -49,7 +49,7 @@ const loggingConfig: LoggingConfig = {
 // overrides the console.log, console.info, and console.error methods. Note: console.time will be considered as to info.
 redirectLoggingToFilesSync(loggingConfig);
 
-const reusableLogLocation = path.resolve(`${__dirname}/../../../volume/logs/sync-logs/reusable_logs`);
+const reusableLogLocation = path.resolve(`${__dirname}/volume/logs/sync-logs/reusable_logs`);
 // generates a function we can use to create the reusable logs.
 const reusableLogger = createReusableLoggerSync(reusableLogLocation);
 
@@ -68,3 +68,5 @@ console['errorWithColor']([Colors.FgRed, Colors.BgWhite], ...stuffToLog);
 ```
 
 You can detect if any files exist with the pattern `*.error.log`, then you'll know there's something requiring attention.
+
+Check out the [synchronous](https://github.com/Mark-McCracken/flogger-ts/blob/master/examples/example-sync-logs.ts) and [asynchronous](https://github.com/Mark-McCracken/flogger-ts/blob/master/examples/example-async-logs.ts) examples on [github](https://github.com/Mark-McCracken/flogger-ts) 

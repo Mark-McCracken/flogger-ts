@@ -1,27 +1,26 @@
-import {ReusableLog} from "../models/reusable-log.model";
 /**
  * Created by mark.mccracken on 01/07/2017.
  */
 let path = require('path');
-
-import {currentDateString, currentTimestampString} from "../current-timestamp-string";
+import {currentDateString, currentTimestampString,
+    ReusableLog, LoggingConfig,
+    Colors,
+    redirectLoggingToFiles,
+    ReusableLogger,
+    removeEmptyLogFiles} from "flogger-ts";
 let currentDate: string = currentDateString();
-
 let generatePathLocation = (suffix: string) => {
-    if (suffix === "log") return path.resolve(`${__dirname}/../../../volume/logs/async-logs/${currentDate}.log`);
-    return path.resolve(`${__dirname}/../../../volume/logs/async-logs/${currentDate}.${suffix}.log`);
+    if (suffix === "log") return path.resolve(`${__dirname}/volume/logs/async-logs/${currentDate}.log`);
+    return path.resolve(`${__dirname}/volume/logs/async-logs/${currentDate}.${suffix}.log`);
 };
 let logPath = generatePathLocation('log');
 let infoPath = generatePathLocation('info');
 let errorPath = generatePathLocation('error');
-import {LoggingConfig} from "../models/logging-config.model";
 let loggingConfig: LoggingConfig = {
     log:   { location: logPath,   printToTerminal: true },
     info:  { location: infoPath,  printToTerminal: true },
     error: { location: errorPath, printToTerminal: true }
 };
-import {redirectLoggingToFiles, removeEmptyLogFiles, ReusableLogger} from "../asynchronous-logger";
-import {Colors} from "../colors";
 
 redirectLoggingToFiles(loggingConfig);
 
@@ -50,7 +49,7 @@ reusableLogger.log({
     }
 }).then();
 
-console.log("Some standard node-typescript-file-logging information");
+console.log("Some standard logging information");
 console['logWithColor']([Colors.FgMagenta], "red stuff");
 console.info("X results successfully inserted, 1 query errored with following details: {SQLCODE=24000 or whatever}");
 console.error("this is bad.");

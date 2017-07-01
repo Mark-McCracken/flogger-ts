@@ -3,7 +3,7 @@
  */
 import {LoggingConfig} from "./models/logging-config.model";
 import {ReusableLog} from "./models/reusable-log.model";
-import {currentTimestampString} from "./current-timestamp-string";
+import {currentTimestampString} from "./current-date";
 import {Colors} from "./colors";
 let fs = require('fs');
 let path = require("path");
