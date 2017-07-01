@@ -1,0 +1,29 @@
+{
+  "name": "flogger-ts",
+  "version": "0.1.0",
+  "description": "A logger that's easy to configure, transparent to use, and generates recoverable logs that can be re-processed.",
+  "main": "dist/index.js",
+  "directories": {
+    "example": "examples"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^8.0.7",
+    "typescript": "^2.4.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "prepublish": "npm run build"
+  },
+  "keywords": [
+    "log",
+    "logger",
+    "file",
+    "async",
+    "asynchronous",
+    "typescript"
+  ],
+  "author": "Mark McCracken <markmccracken91@me.com>",
+  "license": "ISC"
+}
