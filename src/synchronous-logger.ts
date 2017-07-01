@@ -1,10 +1,11 @@
 /**
  * Created by mark.mccracken on 28/06/2017.
  */
-import {LoggingConfig} from "./models/logging-config.model";
-import {ReusableLog} from "./models/reusable-log.model";
+import {LoggingConfig} from "../models/logging-config.model";
+import {ReusableLog} from "../models/reusable-log.model";
 import {currentTimestampString} from "./current-date";
 import {Colors} from "./colors";
+import {LogColoredOutputPrefix} from "./prefix";
 let fs = require('fs');
 let path = require("path");
 let fileExistsSync = (path) => fs.existsSync(path, 'utf8');
@@ -58,22 +59,24 @@ export function redirectLoggingToFilesSync(config: LoggingConfig): void {
        console[logType] = (...items) => {
            if (logType !== "error" || errorValuesExist(items)) logToFile(logType, items);
            if (config[logType].printToTerminal) {
+               let output: "stdout" | "stderr" = logType === "error" ? "stderr" : "stdout";
+               LogColoredOutputPrefix(output, logType);
                items.forEach(item => {
-                   let output = logType === "error" ? "stderr" : "stdout";
                    if (typeof item === "object") process[output].write(JSON.stringify(item) + "\n");
                    else process[output].write(item + "\n");
                });
            }
        };
        console[logType + "WithColor"] = (colorInput: Colors[] | Colors, ...items) => {
-               if (logType !== "error" || errorValuesExist(items)) logToFile(logType, items);
-               let output = logType === "error" ? "stderr" : "stdout";
-               Array.isArray(colorInput) ? process[output].write(colorInput.join("")) : process[output].write(colorInput);
-               items.forEach(item => {
-                   if (typeof item === "object") process[output].write(JSON.stringify(item) + "\n");
-                   else process[output].write(item + "\n");
-               });
-               process[output].write(Colors.Reset);
+           if (logType !== "error" || errorValuesExist(items)) logToFile(logType, items);
+           let output: "stdout" | "stderr" = logType === "error" ? "stderr" : "stdout";
+           LogColoredOutputPrefix(output, logType);
+           Array.isArray(colorInput) ? process[output].write(colorInput.join("")) : process[output].write(colorInput);
+           items.forEach(item => {
+               if (typeof item === "object") process[output].write(JSON.stringify(item) + "\n");
+               else process[output].write(item + "\n");
+           });
+           process[output].write(Colors.Reset);
        };
     });
 }

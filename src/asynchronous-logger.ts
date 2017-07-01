@@ -1,10 +1,11 @@
 /**
  * Created by mark.mccracken on 01/07/2017.
  */
-import {LoggingConfig} from "./models/logging-config.model";
-import {ReusableLog} from "./models/reusable-log.model";
+import {LoggingConfig} from "../models/logging-config.model";
+import {ReusableLog} from "../models/reusable-log.model";
 import {currentTimestampString} from "./current-date";
 import {Colors} from "./colors";
+import {LogColoredOutputPrefix} from "./prefix";
 let fs = require('fs');
 let path = require("path");
 
@@ -151,7 +152,7 @@ export function redirectLoggingToFiles(config: LoggingConfig): void {
         if (!logFileExists) {
             try { await makeEmptyFile(config[logType].location); } catch (e) { console.error("error in making empty file"); }
         }
-        try { await appendFile(config[logType].location, `[${new Date()}] [${logType.toUpperCase()}] \n`); } catch (e) { console.error(`error in appending file`); console.error(e); }
+        try { await appendFile(config[logType].location, `[${new Date()}] [${logType.toUpperCase()}] `); } catch (e) { console.error(`error in appending file`); console.error(e); }
         items.forEach(async (item) => {
             try { await appendItem(config[logType].location, item); } catch (e) { console.error(`err in appending item`); console.error(e); }
         });
@@ -162,8 +163,9 @@ export function redirectLoggingToFiles(config: LoggingConfig): void {
                 try { await logToFile(logType, items); } catch(e) { console.error(`Error logging to file.`); console.error(e) }
             }
             if (config[logType].printToTerminal) {
+                let output: "stdout" | "stderr" = logType === "error" ? "stderr" : "stdout";
+                LogColoredOutputPrefix(output, logType);
                 items.forEach(item => {
-                    let output = logType === "error" ? "stderr" : "stdout";
                     if (typeof item === "object") process[output].write(JSON.stringify(item) + "\n");
                     else process[output].write(item + "\n");
                 });

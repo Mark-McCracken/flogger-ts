@@ -1,4 +1,4 @@
-#flogger-ts
+#Flogger-ts
 A file logger that's easy to configure, transparent to use, and generates recoverable logs that can be re-processed.
 
 
