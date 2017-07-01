@@ -69,4 +69,6 @@ console['errorWithColor']([Colors.FgRed, Colors.BgWhite], ...stuffToLog);
 
 You can detect if any files exist with the pattern `*.error.log`, then you'll know there's something requiring attention.
 
-Check out the [synchronous](https://github.com/Mark-McCracken/flogger-ts/blob/master/examples/example-sync-logs.ts) and [asynchronous](https://github.com/Mark-McCracken/flogger-ts/blob/master/examples/example-async-logs.ts) examples on [github](https://github.com/Mark-McCracken/flogger-ts) 
+Check out the [synchronous](https://github.com/Mark-McCracken/flogger-ts/blob/master/examples/example-sync-logs.ts) and [asynchronous](https://github.com/Mark-McCracken/flogger-ts/blob/master/examples/example-async-logs.ts) examples on [github](https://github.com/Mark-McCracken/flogger-ts)
+ 
+(These examples are excluded by typescript compiler, and do not currently compile)
