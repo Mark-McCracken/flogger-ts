@@ -6,6 +6,7 @@ import {ReusableLog} from "../models/reusable-log.model";
 import {currentTimestampString} from "./current-date";
 import {Colors} from "./colors";
 import {LogColoredOutputPrefix} from "./prefix";
+import {unusedLogTypeColors} from "./unused-log-type-coloring";
 let fs = require('fs');
 let path = require("path");
 let fileExistsSync = (path) => fs.existsSync(path, 'utf8');
@@ -55,10 +56,13 @@ export function redirectLoggingToFilesSync(config: LoggingConfig): void {
         fs.appendFileSync(config[logType].location, `[${new Date()}] [${logType.toUpperCase()}] \n`);
         items.forEach(item => appendItemSync(config[logType].location, item));
     }
+
     Object.keys(config).forEach(logType => {
        console[logType] = (...items) => {
-           if (logType !== "error" || errorValuesExist(items)) logToFile(logType, items);
-           if (config[logType].printToTerminal) {
+           if (config[logType].location) {
+               if (logType !== "error" || errorValuesExist(items)) logToFile(logType, items);
+           }
+           if (config[logType].printToTerminal || !(config[logType].location)) {
                let output: "stdout" | "stderr" = logType === "error" ? "stderr" : "stdout";
                LogColoredOutputPrefix(output, logType);
                items.forEach(item => {
@@ -68,7 +72,9 @@ export function redirectLoggingToFilesSync(config: LoggingConfig): void {
            }
        };
        console[logType + "WithColor"] = (colorInput: Colors[] | Colors, ...items) => {
-           if (logType !== "error" || errorValuesExist(items)) logToFile(logType, items);
+           if (config[logType].location) {
+               if (logType !== "error" || errorValuesExist(items)) logToFile(logType, items);
+           }
            let output: "stdout" | "stderr" = logType === "error" ? "stderr" : "stdout";
            LogColoredOutputPrefix(output, logType);
            Array.isArray(colorInput) ? process[output].write(colorInput.join("")) : process[output].write(colorInput);
@@ -79,6 +85,7 @@ export function redirectLoggingToFilesSync(config: LoggingConfig): void {
            process[output].write(Colors.Reset);
        };
     });
+    unusedLogTypeColors(config);
 }
 
 export function removeEmptyLogFilesSync(config: LoggingConfig): void {

@@ -6,6 +6,7 @@ import {ReusableLog} from "../models/reusable-log.model";
 import {currentTimestampString} from "./current-date";
 import {Colors} from "./colors";
 import {LogColoredOutputPrefix} from "./prefix";
+import {unusedLogTypeColors} from "./unused-log-type-coloring";
 let fs = require('fs');
 let path = require("path");
 
@@ -122,9 +123,13 @@ async function makeEmptyFile(path: string) {
 }
 
 
+async function appendItemWithTimestamp(location: string, logType, item) {
+    if (typeof item === "object") await appendFile(location, `[${new Date()}] [${logType.toUpperCase()}] ${JSON.stringify(item) + "\n"}`);
+    else await appendFile(location, `[${new Date()}] [${logType.toUpperCase()}] ${item + "\n"}`);
+}
 async function appendItem(location: string, item) {
-    if (typeof item === "object") await appendFile(location, JSON.stringify(item) + "\n");
-    else await appendFile(location, item + "\n");
+    if (typeof item === "object") await appendFile(location, JSON.stringify(item));
+    else await appendFile(location, item);
 }
 
 export function redirectLoggingToFiles(config: LoggingConfig): void {
@@ -152,17 +157,21 @@ export function redirectLoggingToFiles(config: LoggingConfig): void {
         if (!logFileExists) {
             try { await makeEmptyFile(config[logType].location); } catch (e) { console.error("error in making empty file"); }
         }
-        try { await appendFile(config[logType].location, `[${new Date()}] [${logType.toUpperCase()}] `); } catch (e) { console.error(`error in appending file`); console.error(e); }
         items.forEach(async (item) => {
-            try { await appendItem(config[logType].location, item); } catch (e) { console.error(`err in appending item`); console.error(e); }
+            try { await appendItemWithTimestamp(config[logType].location, logType, item); } catch (e) { console.error(`err in appending item with timestamp`); console.error(e); }
         });
+    }
+    async function checkAndLogToLocation(logType, items) {
+        if (config[logType].location) {
+            if (logType !== "error" || errorValuesExist(items)) {
+                try { await logToFile(logType, items); } catch(e) { console.error(`Error 0 logging to file.`); console.error(e) }
+            }
+        }
     }
     Object.keys(config).forEach(logType => {
         console[logType] = async (...items) => {
-            if (logType !== "error" || errorValuesExist(items)) {
-                try { await logToFile(logType, items); } catch(e) { console.error(`Error logging to file.`); console.error(e) }
-            }
-            if (config[logType].printToTerminal) {
+            try { await checkAndLogToLocation(logType, items); } catch (e) { console.error(`Error 1 logging to file`); console.error(e) }
+            if (config[logType].printToTerminal || !(config[logType].location)) {
                 let output: "stdout" | "stderr" = logType === "error" ? "stderr" : "stdout";
                 LogColoredOutputPrefix(output, logType);
                 items.forEach(item => {
@@ -172,10 +181,9 @@ export function redirectLoggingToFiles(config: LoggingConfig): void {
             }
         };
         console[logType + "WithColor"] = async (colorInput: Colors[] | Colors, ...items) => {
-            if (logType !== "error" || errorValuesExist(items)) {
-                try { await logToFile(logType, items); } catch(e) { console.error(`Error logging to file.`); console.error(e) }
-            }
-            let output = logType === "error" ? "stderr" : "stdout";
+            try { await checkAndLogToLocation(logType, items); } catch (e) { console.error(`Error 1 logging to file`); console.error(e) }
+            let output: "stderr" | "stdout" = logType === "error" ? "stderr" : "stdout";
+            LogColoredOutputPrefix(output, logType);
             Array.isArray(colorInput) ? process[output].write(colorInput.join("")) : process[output].write(colorInput);
             items.forEach(item => {
                 if (typeof item === "object") process[output].write(JSON.stringify(item) + "\n");
@@ -184,6 +192,7 @@ export function redirectLoggingToFiles(config: LoggingConfig): void {
             process[output].write(Colors.Reset);
         };
     });
+    unusedLogTypeColors(config);
 }
 
 export async function removeEmptyLogFiles(config: LoggingConfig) {
@@ -222,7 +231,7 @@ export class ReusableLogger {
         await makeEmptyFile(pathToFile);
         item.date = date;
         item.dateString = currentTimestampString({date: date});
-        await appendItem(pathToFile, JSON.stringify(item));
+        await appendItem(pathToFile, item);
         this.pendingItems--;
     };
 

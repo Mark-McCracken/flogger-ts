@@ -3,11 +3,10 @@
  */
 let path = require('path');
 import {currentDateString, currentTimestampString,
-    ReusableLog, LoggingConfig,
-    Colors,
+    ReusableLog, LoggingConfig, ConsoleAllColor, Colors,
     redirectLoggingToFilesSync,
     createReusableLoggerSync,
-    removeEmptyLogFilesSync} from "flogger-ts";
+    removeEmptyLogFilesSync} from "../";
 let currentDate: string = currentDateString();
 let generatePathLocation = (suffix: string) => {
     if (suffix === "log") return path.resolve(`${__dirname}/volume/logs/sync-logs/${currentDate}.log`);
@@ -17,7 +16,7 @@ let logPath = generatePathLocation('log');
 let infoPath = generatePathLocation('info');
 let errorPath = generatePathLocation('error');
 let loggingConfig: LoggingConfig = {
-    log:   { location: logPath,   printToTerminal: true },
+    log:   { printToTerminal: true },
     info:  { location: infoPath,  printToTerminal: true },
     error: { location: errorPath, printToTerminal: true }
 };
@@ -27,6 +26,9 @@ redirectLoggingToFilesSync(loggingConfig);
 let reusableLogLocation = path.resolve(`${__dirname}/volume/logs/sync-logs/reusable_logs`);
 // generates a function we can use to create the reusable logs.
 let reusableLogger = createReusableLoggerSync(reusableLogLocation);
+
+// provide types for colored Logging
+declare const console: Console & ConsoleAllColor;
 
 let item1 = {
     error: "Error: table constraint not satisfied",
@@ -58,6 +60,7 @@ let fs = require("fs");
 console.log("Some standard logging information");
 console.info("X results successfully inserted, 2 queries errored, 1 retryable. 1 errored with following details: {SQLCODE=24000 or whatever}");
 console.error("NAT Type: Strict. No Cod for you.");
+console.warnWithColor(Colors.FgRed, "Warning!");
 
 let errorsOccurred;
 try {
@@ -75,8 +78,7 @@ try {
     }
 }
 
-console['logWithColor']([Colors.FgGreen], "stuff to colorfully log");
-
+console.logWithColor([Colors.FgGreen], "stuff to colorfully log");
 
 let files;
 try {

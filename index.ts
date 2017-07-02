@@ -7,4 +7,4 @@ export * from "./src/colors";
 export * from "./src/current-date";
 export * from "./models/logging-config.model";
 export * from "./models/reusable-log.model";
-export * from "./src/prefix";
+export * from "./models/console-with-color";

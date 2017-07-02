@@ -3,8 +3,8 @@
  */
 
 interface LogItemValues {
-    location: string;
-    printToTerminal: boolean;
+    location?: string;
+    printToTerminal?: boolean;
 }
 export interface LoggingConfig {
     info?: LogItemValues;

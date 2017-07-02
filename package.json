@@ -25,6 +25,10 @@
     "asynchronous",
     "typescript"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Mark-McCracken/flogger-ts"
+  },
   "author": "Mark McCracken <markmccracken91@me.com>",
   "license": "ISC"
 }

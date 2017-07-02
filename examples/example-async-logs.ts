@@ -3,11 +3,10 @@
  */
 let path = require('path');
 import {currentDateString, currentTimestampString,
-    ReusableLog, LoggingConfig,
-    Colors,
+    ReusableLog, LoggingConfig, Colors, ConsoleAllColor,
     redirectLoggingToFiles,
     ReusableLogger,
-    removeEmptyLogFiles} from "flogger-ts";
+    removeEmptyLogFiles} from "../";
 let currentDate: string = currentDateString();
 let generatePathLocation = (suffix: string) => {
     if (suffix === "log") return path.resolve(`${__dirname}/volume/logs/async-logs/${currentDate}.log`);
@@ -21,10 +20,12 @@ let loggingConfig: LoggingConfig = {
     info:  { location: infoPath,  printToTerminal: true },
     error: { location: errorPath, printToTerminal: true }
 };
-
 redirectLoggingToFiles(loggingConfig);
 
-let reusableLogLocation = path.resolve(`${__dirname}/../../../volume/logs/async-logs/reusable_logs`);
+// provide types for colored Logging
+declare const console: Console & ConsoleAllColor; //even works for warn
+
+let reusableLogLocation = path.resolve(`${__dirname}/volume/logs/async-logs/reusable_logs`);
 let reusableLogger = new ReusableLogger(reusableLogLocation);
 
 reusableLogger.log({
@@ -50,9 +51,10 @@ reusableLogger.log({
 }).then();
 
 console.log("Some standard logging information");
-console['logWithColor']([Colors.FgMagenta], "red stuff");
+console.logWithColor([Colors.FgMagenta], "magenta stuff");
 console.info("X results successfully inserted, 1 query errored with following details: {SQLCODE=24000 or whatever}");
 console.error("this is bad.");
+console.warnWithColor([Colors.FgWhite], "Warning. Shoddy code follows");
 
 let fs = require("fs");
 fs.readdir(reusableLogLocation, (err, files) => {
