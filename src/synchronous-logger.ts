@@ -53,7 +53,7 @@ export function redirectLoggingToFilesSync(config: LoggingConfig): void {
     }
     function logToFile(logType, items) {
         if (!fileExistsSync(config[logType].location)) makeEmptyFileSync(config[logType].location);
-        fs.appendFileSync(config[logType].location, `[${new Date()}] [${logType.toUpperCase()}] \n`);
+        fs.appendFileSync(config[logType].location, `[${new Date()}] [${logType.toUpperCase()}] `);
         items.forEach(item => appendItemSync(config[logType].location, item));
     }
 
