@@ -1,9 +1,9 @@
-#Flogger-ts
+# Flogger-ts
 A file logger that's easy to configure, transparent to use, and generates recoverable logs that can be re-processed.
 
 
 
-###Why
+### Why
 I've been working with databases and have been streaming and moving files a lot lately, some of which are in batches which occasionally might fail for a variety of reasons, and I need some logs to see what's gone on.
 This has probably been solved before, however I wanted a solution I fully understood and have control over to change as I see fit.
 - I wanted a logger that I could use in docker, to both print to the console when developing, and log to a file when something runs remotely.
@@ -14,7 +14,7 @@ This has probably been solved before, however I wanted a solution I fully unders
 - I don't want to have to do much different in my regular code. I'm very used to console.log
 - I want to be able to print things to the terminal in color easily. Sometimes I have a lot of logs for debugging and am feeling ashamed of myself for needing so much logging. Colors ease the shame.
 
-###How
+### How
 - do the deed:
 ```shell
 npm install flogger-ts
