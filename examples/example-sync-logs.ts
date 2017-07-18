@@ -6,7 +6,7 @@ import {currentDateString, currentTimestampString,
     ReusableLog, LoggingConfig, ConsoleAllColor, Colors,
     redirectLoggingToFilesSync,
     createReusableLoggerSync,
-    removeEmptyLogFilesSync} from "../";
+    removeEmptyLogFilesSync} from "flogger-ts";
 let currentDate: string = currentDateString();
 let generatePathLocation = (suffix: string) => {
     if (suffix === "log") return path.resolve(`${__dirname}/volume/logs/sync-logs/${currentDate}.log`);
