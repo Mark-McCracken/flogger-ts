@@ -102,14 +102,14 @@ export function removeEmptyLogFilesSync(config: LoggingConfig): void {
 
 export function createReusableLoggerSync(directory: string): ((item: ReusableLog) => void) {
     return (item: ReusableLog): void => {
-        if (directory[directory.length - 1] === path.sep) directory = directory.substr(0, directory.length - 1);
+        directory = path.resolve(directory);
         if (!fs.existsSync(directory)) makeDirectoryRecursivelySync(directory);
         let fileIndexPrefix = fs.readdirSync(directory).length.toString();
         while (fileIndexPrefix.length < 4) fileIndexPrefix = `0${fileIndexPrefix}`;
         let date = new Date();
         let timestamp = currentTimestampString({separator: "_", date: date});
         let fileName = `${fileIndexPrefix}_${timestamp}.reusable_log.json`;
-        let pathToFile = `${directory}/${fileName}`;
+        let pathToFile = path.join(directory, fileName);
         makeEmptyFileSync(pathToFile);
         if (!item.date) item.date = date;
         if (!item.dateString) item.dateString = currentTimestampString({date: item.date});

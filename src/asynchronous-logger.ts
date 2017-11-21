@@ -224,7 +224,7 @@ export class ReusableLogger {
     private pendingItems: number = 0;
 
     log = async (item: ReusableLog) => {
-        if (this.directory[this.directory.length - 1] === path.sep) this.directory = this.directory.substr(0, this.directory.length - 1);
+        this.directory = path.resolve(this.directory);
         if (!(await exists(this.directory))) await makeDirectoryRecursively(this.directory);
         let fileIndexPrefix = ((await readdir(this.directory)).length + this.pendingItems++).toString();
         while (fileIndexPrefix.length < 4) fileIndexPrefix = `0${fileIndexPrefix}`;
@@ -232,7 +232,7 @@ export class ReusableLogger {
         let date = new Date();
         let timestamp = currentTimestampString({separator: "_", date: date});
         let fileName = `${fileIndexPrefix}_${timestamp}.reusable_log.json`;
-        let pathToFile = `${this.directory}/${fileName}`;
+        let pathToFile = path.join(this.directory, fileName);
         await makeEmptyFile(pathToFile);
         item.date = date;
         item.dateString = currentTimestampString({date: date});
