@@ -11,10 +11,9 @@ export function unusedLogTypeColors (config) {
             LogColoredOutputPrefix(output, unusedLogType);
             Array.isArray(colorInput) ? process[output].write(colorInput.join("")) : process[output].write(colorInput);
             items.forEach(item => {
-                if (typeof item === "object") process[output].write(JSON.stringify(item) + "\n");
-                else process[output].write(item + "\n");
+                if (typeof item === "object") process[output].write(JSON.stringify(item) + Colors.Reset + "\n");
+                else process[output].write(item + Colors.Reset + "\n");
             });
-            process[output].write(Colors.Reset);
         };
     });
 }

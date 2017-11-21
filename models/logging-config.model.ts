@@ -6,9 +6,14 @@ interface LogItemValues {
     location?: string;
     printToTerminal?: boolean;
 }
+interface LogItemValuesMultiLog {
+	locations: string[];
+	printToTerminal?: boolean;
+}
+type config = LogItemValues | LogItemValuesMultiLog;
 export interface LoggingConfig {
-    info?: LogItemValues;
-    log?: LogItemValues;
-    error?: LogItemValues;
-    warn?: LogItemValues;
+    info?: config;
+    log?: config;
+    error?: config;
+    warn?: config;
 }

@@ -1,12 +1,14 @@
 /**
  * Created by mark.mccracken on 01/07/2017.
  */
+import {LoggingConfig} from "../models/logging-config.model";
+
 let path = require('path');
 import {currentDateString, currentTimestampString,
-    ReusableLog, LoggingConfig, ConsoleAllColor, Colors,
+    ReusableLog, ConsoleAllColor, Colors,
     redirectLoggingToFilesSync,
     createReusableLoggerSync,
-    removeEmptyLogFilesSync} from "flogger-ts";
+    removeEmptyLogFilesSync} from "../"//"flogger-ts";
 let currentDate: string = currentDateString();
 let generatePathLocation = (suffix: string) => {
     if (suffix === "log") return path.resolve(`${__dirname}/volume/logs/sync-logs/${currentDate}.log`);
@@ -18,7 +20,8 @@ let errorPath = generatePathLocation('error');
 let loggingConfig: LoggingConfig = {
     log:   { printToTerminal: true },
     info:  { location: infoPath,  printToTerminal: true },
-    error: { location: errorPath, printToTerminal: true }
+	error: { location: errorPath, printToTerminal: true },
+	warn: { locations: [infoPath, errorPath], printToTerminal: true }
 };
 // overrides the console.log, console.info, and console.error methods. Note: console.time will be considered as to info.
 redirectLoggingToFilesSync(loggingConfig);
@@ -52,8 +55,8 @@ let item2 = {
     }
 };
 
-reusableLogger(item1);
-reusableLogger(item2);
+// reusableLogger(item1);
+// reusableLogger(item2);
 
 let fs = require("fs");
 

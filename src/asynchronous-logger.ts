@@ -86,34 +86,34 @@ let appendFile = async (location, contents) => {
 
 
 async function makeDirectoryRecursively(directory: string) {
-    let parts = directory.split("/");
+    let parts = directory.split(path.sep);
     let subParts = parts.filter((_, idx, arr) => idx < arr.length);
 
     let existing;
-    try { existing = await exists(subParts.join("/")) } catch (e) { console.error(`Error in checking file existence ${subParts.join("/")}`); console.error(e); }
+    try { existing = await exists(subParts.join(path.sep)) } catch (e) { console.error(`Error in checking file existence ${subParts.join(path.sep)}`); console.error(e); }
     while (!existing) {
         subParts = subParts.filter((_, idx) => idx < subParts.length - 1);
-        try { existing = await exists(subParts.join("/")) } catch (e) { console.error(`Error in checking file existence ${subParts.join("/")}`); console.error(e); }
+        try { existing = await exists(subParts.join(path.sep)) } catch (e) { console.error(`Error in checking file existence ${subParts.join(path.sep)}`); console.error(e); }
     }
     subParts.push(parts[subParts.length]);
-    try { await mkdir(subParts.join("/")); } catch (e) {  }
+    try { await mkdir(subParts.join(path.sep)); } catch (e) {  }
     while (subParts.length < parts.length) {
         subParts.push(parts[subParts.length]);
-        try { await mkdir(subParts.join("/")); } catch (e) {  }
+        try { await mkdir(subParts.join(path.sep)); } catch (e) {  }
     }
 }
 
-async function makeEmptyFile(path: string) {
+async function makeEmptyFile(pathInput: string) {
     return new Promise(async (resolve, reject) => {
-        let directory = path.split("/").filter((_, idx, arr) => idx < arr.length - 1).join("/");
+        let directory = pathInput.split(path.sep).filter((_, idx, arr) => idx < arr.length - 1).join(path.sep);
         let directoryExists;
         try { directoryExists = await exists(directory); } catch (e) { console.error(`Error checking existence of directory ${directory}`); console.error(e); }
         if (directory && !(directoryExists)) {
             try { await makeDirectoryRecursively(directory); } catch(e) { console.error(`error in making directory recursively, directory: ${directory}`); console.error(e); }
         }
-        fs.writeFile(path, "", (err) => {
+        fs.writeFile(pathInput, "", (err) => {
             if (err) {
-                console.error(`Error in creating empty file ${path}`);
+                console.error(`Error in creating empty file ${pathInput}`);
                 console.error(err);
                 reject(err);
             }
@@ -140,29 +140,34 @@ export function redirectLoggingToFiles(config: LoggingConfig): void {
                     if (typeof i === "number") return true;
                     if (typeof i === "boolean") return true;
                     if (i === undefined || i === null) return false;
-                    if (i.hasOwnProperty('length') && i.length === 0) return false;
+                    if (Array.isArray(i) && i.length === 0) return false;
                     if (typeof i === "object" && Object.keys(i).length === 0) return false;
                     return Boolean(i);
                 });
         };
     }
     async function logToFile(logType, items) {
-        let logFileExists;
-        try {
-            logFileExists = await exists(config[logType].location);
-        } catch (e) {
-            console.log(`error: log file does not exist`);
-            console.error(e)
-        }
-        if (!logFileExists) {
-            try { await makeEmptyFile(config[logType].location); } catch (e) { console.error("error in making empty file"); }
-        }
-        items.forEach(async (item) => {
-            try { await appendItemWithTimestamp(config[logType].location, logType, item); } catch (e) { console.error(`err in appending item with timestamp`); console.error(e); }
-        });
+    	let locations: string[];
+    	if (config[logType].locations) locations = config[logType].locations;
+    	if (config[logType].location)  locations = [config[logType].location];
+        locations.forEach(async location => {
+		    let logFileExists;
+		    try {
+			    logFileExists = await exists(location);
+		    } catch (e) {
+			    console.error(`error: could not check if file exists`);
+			    console.error(e);
+		    }
+		    if (!logFileExists) {
+			    try { await makeEmptyFile(location); } catch (e) { console.error("error in making empty file"); }
+		    }
+		    items.forEach(async (item) => {
+			    try { await appendItemWithTimestamp(location, logType, item); } catch (e) { console.error(`err in appending item with timestamp`); console.error(e); }
+		    });
+	    });
     }
     async function checkAndLogToLocation(logType, items) {
-        if (config[logType].location) {
+        if (config[logType].location || (config[logType].locations && config[logType].locations.length)) {
             if (logType !== "error" || errorValuesExist(items)) {
                 try { await logToFile(logType, items); } catch(e) { console.error(`Error 0 logging to file.`); console.error(e) }
             }
@@ -171,12 +176,12 @@ export function redirectLoggingToFiles(config: LoggingConfig): void {
     Object.keys(config).forEach(logType => {
         console[logType] = async (...items) => {
             try { await checkAndLogToLocation(logType, items); } catch (e) { console.error(`Error 1 logging to file`); console.error(e) }
-            if (config[logType].printToTerminal || !(config[logType].location)) {
+            if (config[logType].printToTerminal || !(config[logType].location || config[logType].locations)) {
                 let output: "stdout" | "stderr" = logType === "error" ? "stderr" : "stdout";
                 LogColoredOutputPrefix(output, logType);
                 items.forEach(item => {
-                    if (typeof item === "object") process[output].write(JSON.stringify(item) + "\n");
-                    else process[output].write(item + "\n");
+                    if (typeof item === "object") process[output].write(JSON.stringify(item) + Colors.Reset + "\n");
+                    else process[output].write(item + Colors.Reset + "\n");
                 });
             }
         };
@@ -186,10 +191,9 @@ export function redirectLoggingToFiles(config: LoggingConfig): void {
             LogColoredOutputPrefix(output, logType);
             Array.isArray(colorInput) ? process[output].write(colorInput.join("")) : process[output].write(colorInput);
             items.forEach(item => {
-                if (typeof item === "object") process[output].write(JSON.stringify(item) + "\n");
-                else process[output].write(item + "\n");
+                if (typeof item === "object") process[output].write(JSON.stringify(item) + Colors.Reset + "\n");
+                else process[output].write(item + Colors.Reset + "\n");
             });
-            process[output].write(Colors.Reset);
         };
     });
     unusedLogTypeColors(config);
@@ -220,10 +224,11 @@ export class ReusableLogger {
     private pendingItems: number = 0;
 
     log = async (item: ReusableLog) => {
-        if (this.directory[this.directory.length - 1] === "/") this.directory = this.directory.substr(0, this.directory.length - 1);
+        if (this.directory[this.directory.length - 1] === path.sep) this.directory = this.directory.substr(0, this.directory.length - 1);
         if (!(await exists(this.directory))) await makeDirectoryRecursively(this.directory);
         let fileIndexPrefix = ((await readdir(this.directory)).length + this.pendingItems++).toString();
         while (fileIndexPrefix.length < 4) fileIndexPrefix = `0${fileIndexPrefix}`;
+                                                                //TODO use left pad instead
         let date = new Date();
         let timestamp = currentTimestampString({separator: "_", date: date});
         let fileName = `${fileIndexPrefix}_${timestamp}.reusable_log.json`;
@@ -234,5 +239,4 @@ export class ReusableLogger {
         await appendItem(pathToFile, item);
         this.pendingItems--;
     };
-
 }

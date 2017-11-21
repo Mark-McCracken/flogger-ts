@@ -7,29 +7,30 @@ import {currentTimestampString} from "./current-date";
 import {Colors} from "./colors";
 import {LogColoredOutputPrefix} from "./prefix";
 import {unusedLogTypeColors} from "./unused-log-type-coloring";
+import {log} from "util";
 let fs = require('fs');
 let path = require("path");
 let fileExistsSync = (path) => fs.existsSync(path, 'utf8');
 type separators = "-" | "_" | " ";
 
 function makeDirectoryRecursivelySync(directory: string): void {
-    let parts = directory.split("/");
+    let parts = directory.split(path.sep);
     let subParts = parts.filter((_, idx, arr) => idx < arr.length);
-    while (!fs.existsSync(subParts.join("/"))) {
+    while (!fs.existsSync(subParts.join(path.sep))) {
         subParts = subParts.filter((_, idx) => idx < subParts.length - 1);
     }
     subParts.push(parts[subParts.length]);
-    fs.mkdirSync(subParts.join("/"));
+    fs.mkdirSync(subParts.join(path.sep));
     while (subParts.length < parts.length) {
         subParts.push(parts[subParts.length]);
-        fs.mkdirSync(subParts.join("/"));
+        fs.mkdirSync(subParts.join(path.sep));
     }
 }
 
-function makeEmptyFileSync(path: string): void {
-    let directory = path.split("/").filter((_, idx, arr) => idx < arr.length - 1).join("/");
+function makeEmptyFileSync(pathInput: string): void {
+    let directory = pathInput.split(path.sep).filter((_, idx, arr) => idx < arr.length - 1).join(path.sep);
     if (directory && !fs.existsSync(directory)) makeDirectoryRecursivelySync(directory);
-    fs.writeFileSync(path, "");
+    fs.writeFileSync(pathInput, "");
 }
 
 function appendItemSync(place: string, item): void {
@@ -52,37 +53,42 @@ export function redirectLoggingToFilesSync(config: LoggingConfig): void {
         };
     }
     function logToFile(logType, items) {
-        if (!fileExistsSync(config[logType].location)) makeEmptyFileSync(config[logType].location);
-        fs.appendFileSync(config[logType].location, `[${new Date()}] [${logType.toUpperCase()}] `);
-        items.forEach(item => appendItemSync(config[logType].location, item));
+	    let locations: string[];
+	    if (config[logType].locations) locations = config[logType].locations;
+	    if (config[logType].location) locations = [config[logType].location];
+	    const dt = new Date();
+	    locations.forEach(location => {
+		    if (!fileExistsSync(location)) makeEmptyFileSync(location);
+		    fs.appendFileSync(location, `[${dt}] [${logType.toUpperCase()}] `);
+		    items.forEach(item => appendItemSync(location, item));
+	    });
     }
 
     Object.keys(config).forEach(logType => {
        console[logType] = (...items) => {
-           if (config[logType].location) {
-               if (logType !== "error" || errorValuesExist(items)) logToFile(logType, items);
+           if (config[logType].location || config[logType].locations) {
+	           if (logType !== "error" || errorValuesExist(items)) logToFile(logType, items);
            }
-           if (config[logType].printToTerminal || !(config[logType].location)) {
+           if (config[logType].printToTerminal || !(config[logType].location || config[logType].locations)) {
                let output: "stdout" | "stderr" = logType === "error" ? "stderr" : "stdout";
                LogColoredOutputPrefix(output, logType);
                items.forEach(item => {
-                   if (typeof item === "object") process[output].write(JSON.stringify(item) + "\n");
-                   else process[output].write(item + "\n");
+                   if (typeof item === "object") process[output].write(JSON.stringify(item) + Colors.Reset + "\n");
+                   else process[output].write(item + Colors.Reset + "\n");
                });
            }
        };
        console[logType + "WithColor"] = (colorInput: Colors[] | Colors, ...items) => {
-           if (config[logType].location) {
+           if (config[logType].location || config[logType].locations) {
                if (logType !== "error" || errorValuesExist(items)) logToFile(logType, items);
            }
            let output: "stdout" | "stderr" = logType === "error" ? "stderr" : "stdout";
            LogColoredOutputPrefix(output, logType);
            Array.isArray(colorInput) ? process[output].write(colorInput.join("")) : process[output].write(colorInput);
            items.forEach(item => {
-               if (typeof item === "object") process[output].write(JSON.stringify(item) + "\n");
-               else process[output].write(item + "\n");
+               if (typeof item === "object") process[output].write(JSON.stringify(item) + Colors.Reset + "\n");
+               else process[output].write(item + Colors.Reset + "\n");
            });
-           process[output].write(Colors.Reset);
        };
     });
     unusedLogTypeColors(config);
@@ -96,7 +102,7 @@ export function removeEmptyLogFilesSync(config: LoggingConfig): void {
 
 export function createReusableLoggerSync(directory: string): ((item: ReusableLog) => void) {
     return (item: ReusableLog): void => {
-        if (directory[directory.length - 1] === "/") directory = directory.substr(0, directory.length - 1);
+        if (directory[directory.length - 1] === path.sep) directory = directory.substr(0, directory.length - 1);
         if (!fs.existsSync(directory)) makeDirectoryRecursivelySync(directory);
         let fileIndexPrefix = fs.readdirSync(directory).length.toString();
         while (fileIndexPrefix.length < 4) fileIndexPrefix = `0${fileIndexPrefix}`;
