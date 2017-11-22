@@ -107,7 +107,7 @@ export function createReusableLoggerSync(directory: string): ((item: ReusableLog
         let fileIndexPrefix = fs.readdirSync(directory).length.toString();
         while (fileIndexPrefix.length < 4) fileIndexPrefix = `0${fileIndexPrefix}`;
         let date = new Date();
-        let timestamp = currentTimestampString({separator: "_", date: date});
+        let timestamp = currentTimestampString({date: date});
         let fileName = `${fileIndexPrefix}_${timestamp}.reusable_log.json`;
         let pathToFile = path.join(directory, fileName);
         makeEmptyFileSync(pathToFile);
