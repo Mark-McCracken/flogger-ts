@@ -218,19 +218,18 @@ export async function removeEmptyLogFiles(config: LoggingConfig) {
 
 export class ReusableLogger {
     constructor(directory: string) {
-        this.directory = directory;
+        this.directory = path.resolve(directory);
     }
     private directory: string;
     private pendingItems: number = 0;
 
     log = async (item: ReusableLog) => {
-        this.directory = path.resolve(this.directory);
         if (!(await exists(this.directory))) await makeDirectoryRecursively(this.directory);
         let fileIndexPrefix = ((await readdir(this.directory)).length + this.pendingItems++).toString();
         while (fileIndexPrefix.length < 4) fileIndexPrefix = `0${fileIndexPrefix}`;
                                                                 //TODO use left pad instead
         let date = new Date();
-        let timestamp = currentTimestampString({separator: "_", date: date});
+        let timestamp = currentTimestampString({date: date});
         let fileName = `${fileIndexPrefix}_${timestamp}.reusable_log.json`;
         let pathToFile = path.join(this.directory, fileName);
         await makeEmptyFile(pathToFile);
