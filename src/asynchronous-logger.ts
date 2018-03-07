@@ -3,7 +3,7 @@
  */
 import {LoggingConfig} from "../models/logging-config.model";
 import {ReusableLog} from "../models/reusable-log.model";
-import {currentTimestampString} from "./current-date";
+import {currentTimestampString, currentTimestampStringWithSpaces} from "./current-date";
 import {Colors} from "./colors";
 import {LogColoredOutputPrefix} from "./prefix";
 import {unusedLogTypeColors} from "./unused-log-type-coloring";
@@ -111,7 +111,7 @@ async function makeEmptyFile(pathInput: string) {
         if (directory && !(directoryExists)) {
             try { await makeDirectoryRecursively(directory); } catch(e) { console.error(`error in making directory recursively, directory: ${directory}`); console.error(e); }
         }
-        fs.writeFile(pathInput, "", (err) => {
+        fs.writeFile(pathInput, "", {mode: 0o777}, (err) => {
             if (err) {
                 console.error(`Error in creating empty file ${pathInput}`);
                 console.error(err);
@@ -124,11 +124,12 @@ async function makeEmptyFile(pathInput: string) {
 
 
 async function appendItemWithTimestamp(location: string, logType, item) {
-    if (typeof item === "object") await appendFile(location, `[${new Date()}] [${logType.toUpperCase()}] ${JSON.stringify(item) + "\n"}`);
-    else await appendFile(location, `[${new Date()}] [${logType.toUpperCase()}] ${item + "\n"}`);
+		const dt = currentTimestampStringWithSpaces();
+    if (typeof item === "object") await appendFile(location, `[${dt}] [${logType.toUpperCase()}] ${JSON.stringify(item, null, '\t') + "\n"}`);
+    else await appendFile(location, `[${dt}] [${logType.toUpperCase()}] ${item + "\n"}`);
 }
 async function appendItem(location: string, item) {
-    if (typeof item === "object") await appendFile(location, JSON.stringify(item));
+    if (typeof item === "object") await appendFile(location, JSON.stringify(item, null, '\t'));
     else await appendFile(location, item);
 }
 
@@ -180,7 +181,7 @@ export function redirectLoggingToFiles(config: LoggingConfig): void {
                 let output: "stdout" | "stderr" = logType === "error" ? "stderr" : "stdout";
                 LogColoredOutputPrefix(output, logType);
                 items.forEach(item => {
-                    if (typeof item === "object") process[output].write(JSON.stringify(item) + Colors.Reset + "\n");
+                    if (typeof item === "object") process[output].write(JSON.stringify(item, null, '\t') + Colors.Reset + "\n");
                     else process[output].write(item + Colors.Reset + "\n");
                 });
             }
@@ -191,7 +192,7 @@ export function redirectLoggingToFiles(config: LoggingConfig): void {
             LogColoredOutputPrefix(output, logType);
             Array.isArray(colorInput) ? process[output].write(colorInput.join("")) : process[output].write(colorInput);
             items.forEach(item => {
-                if (typeof item === "object") process[output].write(JSON.stringify(item) + Colors.Reset + "\n");
+                if (typeof item === "object") process[output].write(JSON.stringify(item, null, '\t') + Colors.Reset + "\n");
                 else process[output].write(item + Colors.Reset + "\n");
             });
         };
@@ -234,7 +235,7 @@ export class ReusableLogger {
         let pathToFile = path.join(this.directory, fileName);
         await makeEmptyFile(pathToFile);
         item.date = date;
-        item.dateString = currentTimestampString({date: date});
+        item.dateString = currentTimestampStringWithSpaces({date: date});
         await appendItem(pathToFile, item);
         this.pendingItems--;
     };

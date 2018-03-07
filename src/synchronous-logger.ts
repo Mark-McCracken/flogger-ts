@@ -3,7 +3,7 @@
  */
 import {LoggingConfig} from "../models/logging-config.model";
 import {ReusableLog} from "../models/reusable-log.model";
-import {currentTimestampString} from "./current-date";
+import {currentTimestampString, currentTimestampStringWithSpaces} from "./current-date";
 import {Colors} from "./colors";
 import {LogColoredOutputPrefix} from "./prefix";
 import {unusedLogTypeColors} from "./unused-log-type-coloring";
@@ -30,11 +30,11 @@ function makeDirectoryRecursivelySync(directory: string): void {
 function makeEmptyFileSync(pathInput: string): void {
     let directory = pathInput.split(path.sep).filter((_, idx, arr) => idx < arr.length - 1).join(path.sep);
     if (directory && !fs.existsSync(directory)) makeDirectoryRecursivelySync(directory);
-    fs.writeFileSync(pathInput, "");
+    fs.writeFileSync(pathInput, "", {mode: 0o777});
 }
 
 function appendItemSync(place: string, item): void {
-    if (typeof item === "object") fs.appendFileSync(place, JSON.stringify(item) + "\n");
+    if (typeof item === "object") fs.appendFileSync(place, JSON.stringify(item, null, '\t') + "\n");
     else fs.appendFileSync(place, item + "\n");
 }
 
@@ -56,7 +56,7 @@ export function redirectLoggingToFilesSync(config: LoggingConfig): void {
 	    let locations: string[];
 	    if (config[logType].locations) locations = config[logType].locations;
 	    if (config[logType].location) locations = [config[logType].location];
-	    const dt = new Date();
+	    const dt = currentTimestampStringWithSpaces();
 	    locations.forEach(location => {
 		    if (!fileExistsSync(location)) makeEmptyFileSync(location);
 		    fs.appendFileSync(location, `[${dt}] [${logType.toUpperCase()}] `);
@@ -73,7 +73,7 @@ export function redirectLoggingToFilesSync(config: LoggingConfig): void {
                let output: "stdout" | "stderr" = logType === "error" ? "stderr" : "stdout";
                LogColoredOutputPrefix(output, logType);
                items.forEach(item => {
-                   if (typeof item === "object") process[output].write(JSON.stringify(item) + Colors.Reset + "\n");
+                   if (typeof item === "object") process[output].write(JSON.stringify(item, null, '\t') + Colors.Reset + "\n");
                    else process[output].write(item + Colors.Reset + "\n");
                });
            }
@@ -86,7 +86,7 @@ export function redirectLoggingToFilesSync(config: LoggingConfig): void {
            LogColoredOutputPrefix(output, logType);
            Array.isArray(colorInput) ? process[output].write(colorInput.join("")) : process[output].write(colorInput);
            items.forEach(item => {
-               if (typeof item === "object") process[output].write(JSON.stringify(item) + Colors.Reset + "\n");
+               if (typeof item === "object") process[output].write(JSON.stringify(item, null, '\t') + Colors.Reset + "\n");
                else process[output].write(item + Colors.Reset + "\n");
            });
        };
@@ -113,6 +113,6 @@ export function createReusableLoggerSync(directory: string): ((item: ReusableLog
         makeEmptyFileSync(pathToFile);
         if (!item.date) item.date = date;
         if (!item.dateString) item.dateString = currentTimestampString({date: item.date});
-        appendItemSync(pathToFile, JSON.stringify(item));
+        appendItemSync(pathToFile, JSON.stringify(item, null, '\t'));
     }
 }
