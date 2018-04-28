@@ -7,9 +7,9 @@ import {currentTimestampString, currentTimestampStringWithSpaces} from "./curren
 import {Colors} from "./colors";
 import {LogColoredOutputPrefix} from "./prefix";
 import {unusedLogTypeColors} from "./unused-log-type-coloring";
-import {log} from "util";
 let fs = require('fs');
 let path = require("path");
+import * as util from "util";
 let fileExistsSync = (path) => fs.existsSync(path, 'utf8');
 type separators = "-" | "_" | " ";
 
@@ -34,7 +34,16 @@ function makeEmptyFileSync(pathInput: string): void {
 }
 
 function appendItemSync(place: string, item): void {
-    if (typeof item === "object") fs.appendFileSync(place, JSON.stringify(item, null, '\t') + "\n");
+    if (typeof item === "object") {
+    	let jsonContent;
+    	try {
+    		jsonContent = JSON.stringify(item, null, '\t');
+	    } catch(e) {
+    		fs.appendFileSync(place, `ERROR! Could not stringify object. Error from stringifying object: ${JSON.stringify(e)}`);
+    		jsonContent = util.inspect(item, {depth: null, colors: false, maxArrayLength: null});
+	    }
+    	fs.appendFileSync(place, jsonContent + "\n");
+    }
     else fs.appendFileSync(place, item + "\n");
 }
 
@@ -73,7 +82,16 @@ export function redirectLoggingToFilesSync(config: LoggingConfig): void {
                let output: "stdout" | "stderr" = logType === "error" ? "stderr" : "stdout";
                LogColoredOutputPrefix(output, logType);
                items.forEach(item => {
-                   if (typeof item === "object") process[output].write(JSON.stringify(item, null, '\t') + Colors.Reset + "\n");
+                   if (typeof item === "object") {
+	                   let jsonContent;
+	                   try {
+		                   jsonContent = JSON.stringify(item, null, '\t');
+	                   } catch(e) {
+		                   process.stdout.write(`${Colors.FgRed}ERROR! Could not stringify object. Error from stringifying object: ${JSON.stringify(e)}${Colors.Reset}\n`);
+		                   jsonContent = util.inspect(item, {depth: null, colors: true, maxArrayLength: null})
+	                   }
+	                   process[output].write(jsonContent + Colors.Reset + "\n");
+                   }
                    else process[output].write(item + Colors.Reset + "\n");
                });
            }
@@ -86,7 +104,16 @@ export function redirectLoggingToFilesSync(config: LoggingConfig): void {
            LogColoredOutputPrefix(output, logType);
            Array.isArray(colorInput) ? process[output].write(colorInput.join("")) : process[output].write(colorInput);
            items.forEach(item => {
-               if (typeof item === "object") process[output].write(JSON.stringify(item, null, '\t') + Colors.Reset + "\n");
+               if (typeof item === "object") {
+               	let jsonContent;
+               	try {
+               		jsonContent = JSON.stringify(item, null, '\t');
+                } catch(e) {
+               		process.stdout.write(`${Colors.FgRed}ERROR! Could not stringify object. Error from stringifying object: ${JSON.stringify(e)}${Colors.Reset}\n`);
+               		jsonContent = util.inspect(item, {depth: null, colors: true, maxArrayLength: null})
+                }
+               	process[output].write(jsonContent + Colors.Reset + "\n");
+               }
                else process[output].write(item + Colors.Reset + "\n");
            });
        };

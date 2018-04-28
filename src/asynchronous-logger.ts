@@ -7,6 +7,7 @@ import {currentTimestampString, currentTimestampStringWithSpaces} from "./curren
 import {Colors} from "./colors";
 import {LogColoredOutputPrefix} from "./prefix";
 import {unusedLogTypeColors} from "./unused-log-type-coloring";
+import * as util from "util";
 let fs = require('fs');
 let path = require("path");
 
@@ -122,14 +123,21 @@ async function makeEmptyFile(pathInput: string) {
     });
 }
 
+function safeStringify(item: object, colors: boolean = true): string {
+	try {
+		return JSON.stringify(item, null, '\t');
+	} catch(e) {
+		return util.inspect(item, {depth: null, colors, maxArrayLength: null});
+	}
+}
 
 async function appendItemWithTimestamp(location: string, logType, item) {
 		const dt = currentTimestampStringWithSpaces();
-    if (typeof item === "object") await appendFile(location, `[${dt}] [${logType.toUpperCase()}] ${JSON.stringify(item, null, '\t') + "\n"}`);
+    if (typeof item === "object") await appendFile(location, `[${dt}] [${logType.toUpperCase()}] ${safeStringify(item, false)}\n`);
     else await appendFile(location, `[${dt}] [${logType.toUpperCase()}] ${item + "\n"}`);
 }
 async function appendItem(location: string, item) {
-    if (typeof item === "object") await appendFile(location, JSON.stringify(item, null, '\t'));
+    if (typeof item === "object") await appendFile(location, safeStringify(item, false));
     else await appendFile(location, item);
 }
 
@@ -181,7 +189,7 @@ export function redirectLoggingToFiles(config: LoggingConfig): void {
                 let output: "stdout" | "stderr" = logType === "error" ? "stderr" : "stdout";
                 LogColoredOutputPrefix(output, logType);
                 items.forEach(item => {
-                    if (typeof item === "object") process[output].write(JSON.stringify(item, null, '\t') + Colors.Reset + "\n");
+                    if (typeof item === "object") process[output].write(safeStringify(item) + Colors.Reset + "\n");
                     else process[output].write(item + Colors.Reset + "\n");
                 });
             }

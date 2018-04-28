@@ -8,7 +8,7 @@ import {currentDateString, currentTimestampString,
     ReusableLog, ConsoleAllColor, Colors,
     redirectLoggingToFilesSync,
     createReusableLoggerSync,
-    removeEmptyLogFilesSync} from "../"//"flogger-ts";
+    removeEmptyLogFilesSync} from "flogger-ts";
 let currentDate: string = currentDateString();
 let generatePathLocation = (suffix: string) => {
     if (suffix === "log") return path.resolve(`${__dirname}/volume/logs/sync-logs/${currentDate}.log`);
@@ -54,6 +54,12 @@ let item2 = {
         solution: `only problem was connection timeout, could easily re-run this`
     }
 };
+
+console.log(item1);
+console.log(item2);
+
+item2['self'] = item2;
+console.log(item2);
 
 // reusableLogger(item1);
 // reusableLogger(item2);
