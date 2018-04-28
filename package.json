@@ -1,6 +1,6 @@
 {
   "name": "flogger-ts",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "A logger that's easy to configure, transparent to use, and generates recoverable logs that can be re-processed.",
   "main": "dist/index.js",
   "directories": {
